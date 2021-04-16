@@ -5,7 +5,7 @@ from ppt_adjustement import adjustPrecipFreq
 import itertools
 from statsmodels.distributions.empirical_distribution import ECDF
 
-def eqm(obs, pred, s, threshold, nquantiles):
+def eqm(var, obs, pred, s, threshold, nquantiles):
     if var == 'prec':
         if np.isnan(obs).any() == False:
             p, nPo, nPp, Pth = adjustPrecipFreq(obs, pred, threshold)
