@@ -53,8 +53,7 @@ if (np.isnan(obs).any() == False) and (np.isnan(pred).any() == False):
                 smap[rain][np.where(s[rain]<np.nanmin(qp))] = qo[0]
 
             elif extrapolate == 'constant':
-                test = s[rain][np.where(s[rain] > np.nanmax(qp))] + (qo[len(qo)-1] - qp[len(qo)-1])
-                smap[rain][np.where(s[rain]>np.nanmax(qp))] = test
+                smap[rain][np.where(s[rain]>np.nanmax(qp))] = s[rain][np.where(s[rain] > np.nanmax(qp))] + (qo[len(qo)-1] - qp[len(qo)-1])
                 smap[rain][np.where(s[rain]<np.nanmin(qp))] = s[rain][np.where(s[rain] < np.nanmin(qp))] + (qo[0] - qp[0])
 
         else:
@@ -70,15 +69,3 @@ if (np.isnan(obs).any() == False) and (np.isnan(pred).any() == False):
 
         else:
             smap = s
-
-# binmid = np.arange((1./nbins)*0.5, 1., 1./nbins)
-# qo = mquantiles(obs[np.isfinite(obs)], prob=binmid)
-# qp = mquantiles(p[np.isfinite(p)], prob=binmid)
-# p2o = interp1d(qp, qo, kind='linear', bounds_error=False)
-# c = p2o(s)
-# if extrapolate is None:
-#     c[s > np.max(qp)] = qo[-1]
-#     c[s < np.min(qp)] = qo[0]
-# elif extrapolate == 'constant':
-#     c[s > np.max(qp)] = s[s > np.max(qp)] + qo[-1] - qp[-1]
-#     c[s < np.min(qp)] = s[s < np.min(qp)] + qo[0] - qp[0]
