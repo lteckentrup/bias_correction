@@ -5,7 +5,7 @@ from ppt_adjustement import adjustPrecipFreq
 import itertools
 from statsmodels.distributions.empirical_distribution import ECDF
 
-def eqm(obs, pred, cor, threshold, nquantiles):
+def eqm(obs, pred, cor, threshold, nquantiles, extrapolate):
     if var == 'prec':
         if np.isnan(obs).any() == False:
             p, nPo, nPp, Pth = adjustPrecipFreq(obs, pred, threshold)
@@ -21,10 +21,11 @@ def eqm(obs, pred, cor, threshold, nquantiles):
                 drizzle = np.where((cor>Pth) & (cor<=np.min(p[np.where(p>Pth)])))
 
                 if (len(rain) > 0):
+                    
                     ecdf = ECDF(cor[rain])
                     eFrc =  ecdf.x
                     eFrc  = eFrc[~np.isinf(eFrc)]
-                    nquantiles = None
+                    
                     if nquantiles == None:
                         nquantiles = len(p)
                     else:
@@ -32,13 +33,15 @@ def eqm(obs, pred, cor, threshold, nquantiles):
 
                     nbins = nquantiles
                     binmid = np.arange((1./nbins), 1., 1./nbins)
+                    
+                    ### alphap=1, betap=1: p(k) = (k-1)/(n-1): 
+                    ### p(k) = mode[F(x[k])]. (R type 7, R default)
                     qo = mquantiles(obs[np.where(obs>2)], prob=binmid, alphap=1, betap=1)
                     qp = mquantiles(p[np.where(p>Pth)], prob=binmid, alphap=1, betap=1)
                     p2o = interp1d(qp, qo, kind='linear', bounds_error=False)
                     cor_map = cor.copy()
                     cor_map[rain]=p2o(cor[rain])
 
-                    extrapolate = 'constant'
                     if extrapolate is None:
                         cor_map_rain = cor_map[rain]
                         cor_map_rain[np.where(cor[rain]>np.nanmax(qp))] = qo[len(qo)-1]
@@ -54,7 +57,7 @@ def eqm(obs, pred, cor, threshold, nquantiles):
                     cor_map[rain] = list(itertools.repeat(0,len(cor)))
 
                 if len(drizzle) > 0:
-                    # print(eFrc[1]) ### equals cor_map[drizzle]; original R: probs = eFrc(s[drizzle]) -> needs to be fixed
+                    # print(eFrc[1]) ### equals cor_map[drizzle]; original R: probs = eFrc(s[drizzle])
                     cor_map[drizzle] = mquantiles(cor[cor>np.nanmin(p[np.where(p>Pth)])],
                                                prob=0.1428571, alphap=0, betap=1)
                     cor_map = np.array(cor_map)
@@ -79,7 +82,7 @@ def eqm(obs, pred, cor, threshold, nquantiles):
             qp = mquantiles(p[np.where(p>Pth)], prob=binmid, alphap=1, betap=1)
             p2o = interp1d(qp, qo, kind='linear', bounds_error=False)
             cor_map=p2o(cor)
-            if extrapolation == "constant":
+            if extrapolate == 'constant':
                 cor_map[np.where(cor>np.nanmax(qp))] = cor[np.where(cor>np.nanmax(qp))]+(qo[len(qo)-1]-qp[len(qo)-1])
                 cor_map[np.where(cor<np.nanmin(qp))] = cor[np.where(cor<np.nanmin(qp))]+(qo[0]-qp[0])
             else:
