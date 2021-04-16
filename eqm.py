@@ -5,7 +5,18 @@ from ppt_adjustement import adjustPrecipFreq
 import itertools
 from statsmodels.distributions.empirical_distribution import ECDF
 
-def eqm(var, obs, pred, s, threshold, nquantiles):
+obs = np.array([448.2, 172.0881, 118.9816, 5.797349, 2, 0.7, 0.7, 0.1, 0.7,
+                14, 41.78181, 94.99255])
+pred = np.array([80.2817878635324, 268.832150047484, 270.459391305064,
+                 113.710020941381, 28.1730174899666, 2.60631106038364,
+                 2.81899801580404, 1.4109973622908, 1.23972919673748,
+                 8.74956907080104, 29.8733589632633,   276.032919084638])
+s = np.array([80.2817878635324, 268.832150047484, 270.459391305064,
+              113.710020941381, 28.1730174899666, 2.60631106038364,
+              2.81899801580404, 1.4109973622908, 1.23972919673748,
+              8.74956907080104, 29.8733589632633,   276.032919084638])
+
+def eqm(obs, pred, s, threshold, nquantiles):
     if var == 'prec':
         if np.isnan(obs).any() == False:
             p, nPo, nPp, Pth = adjustPrecipFreq(obs, pred, threshold)
@@ -66,23 +77,27 @@ def eqm(var, obs, pred, s, threshold, nquantiles):
     return(smap)
 
     else:
-        if (all(is.na(o))):
+
+        if np.isnan(obs).all() == True:
             smap = list(itertools.repeat(np.nan,len(s)))
-        elif (all(is.na(p))):
+        elif np.isnan(pred).all() == True:
             smap = list(itertools.repeat(np.nan,len(s)))
-        elif (any(!is.na(p)) & any(!is.na(o))):
-            if (is.null(n.quantiles)) n.quantiles <- length(p):
-                nbins = nquantiles
-                binmid = np.arange((1./nbins), 1., 1./nbins)
-                qo = mquantiles(obs[np.where(obs>2)], prob=binmid, alphap=1, betap=1)
-                qp = mquantiles(p[np.where(p>Pth)], prob=binmid, alphap=1, betap=1)
-                p2o = interp1d(qp, qo, kind='linear', bounds_error=False)
-                smap=p2o(s)
-                if extrapolation == "constant":
-                    smap[np.where(s>np.nanmax(qp))] = s[np.where(s>np.nanmax(qp))]+(qo[len(qo)-1]-qp[len(qo)-1])
-                    smap[np.where(s<np.nanmin(qp))] = s[np.where(s < np.nanmin(qp))] + (qo[0] - qp[0])
-                else:
-                    smap[np.where(s>np.nanmax(qp))] = qo[len(qo)-1]
-                    smap[np.where(s<np.nanmin(qp))] = qo[0]
+        elif (np.isnan(obs).any() == False) and (np.isnan(pred).any() == False):
+            if nquantiles == None:
+                nquantiles = len(p)
+            else:
+                pass
+            nbins = nquantiles
+            binmid = np.arange((1./nbins), 1., 1./nbins)
+            qo = mquantiles(obs[np.where(obs>2)], prob=binmid, alphap=1, betap=1)
+            qp = mquantiles(p[np.where(p>Pth)], prob=binmid, alphap=1, betap=1)
+            p2o = interp1d(qp, qo, kind='linear', bounds_error=False)
+            smap=p2o(s)
+            if extrapolation == "constant":
+                smap[np.where(s>np.nanmax(qp))] = s[np.where(s>np.nanmax(qp))]+(qo[len(qo)-1]-qp[len(qo)-1])
+                smap[np.where(s<np.nanmin(qp))] = s[np.where(s < np.nanmin(qp))] + (qo[0] - qp[0])
+            else:
+                smap[np.where(s>np.nanmax(qp))] = qo[len(qo)-1]
+                smap[np.where(s<np.nanmin(qp))] = qo[0]
 
     return(smap)
