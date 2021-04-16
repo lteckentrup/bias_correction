@@ -5,34 +5,23 @@ from ppt_adjustement import adjustPrecipFreq
 import itertools
 from statsmodels.distributions.empirical_distribution import ECDF
 
-obs = np.array([448.2, 172.0881, 118.9816, 5.797349, 2, 0.7, 0.7, 0.1, 0.7,
-                14, 41.78181, 94.99255])
-pred = np.array([80.2817878635324, 268.832150047484, 270.459391305064,
-                 113.710020941381, 28.1730174899666, 2.60631106038364,
-                 2.81899801580404, 1.4109973622908, 1.23972919673748,
-                 8.74956907080104, 29.8733589632633,   276.032919084638])
-s = np.array([80.2817878635324, 268.832150047484, 270.459391305064,
-              113.710020941381, 28.1730174899666, 2.60631106038364,
-              2.81899801580404, 1.4109973622908, 1.23972919673748,
-              8.74956907080104, 29.8733589632633,   276.032919084638])
-
-def eqm(obs, pred, s, threshold, nquantiles):
+def eqm(obs, pred, cor, threshold, nquantiles):
     if var == 'prec':
         if np.isnan(obs).any() == False:
             p, nPo, nPp, Pth = adjustPrecipFreq(obs, pred, threshold)
         else:
             nP = None
 
-        smap = list(itertools.repeat(np.nan,len(s)))
+        cor_map = list(itertools.repeat(np.nan,len(cor)))
 
-        if (np.isnan(obs).any() == False) and (np.isnan(pred).any() == False):
-            if (len(np.where(p > Pth)[0]) > 0):
-                noRain = np.where(s <= Pth)
-                rain = np.where(s > Pth)
-                drizzle = np.where((s>Pth) & (s<= np.min(p[np.where(p > Pth)])))
+        if (np.isnan(obs).any()==False) and (np.isnan(pred).any()==False):
+            if (len(np.where(p>Pth)[0])>0):
+                noRain = np.where(cor<=Pth)
+                rain = np.where(cor>Pth)
+                drizzle = np.where((cor>Pth) & (cor<=np.min(p[np.where(p>Pth)])))
 
                 if (len(rain) > 0):
-                    ecdf = ECDF(s[rain])
+                    ecdf = ECDF(cor[rain])
                     eFrc =  ecdf.x
                     eFrc  = eFrc[~np.isinf(eFrc)]
                     nquantiles = None
@@ -46,42 +35,39 @@ def eqm(obs, pred, s, threshold, nquantiles):
                     qo = mquantiles(obs[np.where(obs>2)], prob=binmid, alphap=1, betap=1)
                     qp = mquantiles(p[np.where(p>Pth)], prob=binmid, alphap=1, betap=1)
                     p2o = interp1d(qp, qo, kind='linear', bounds_error=False)
-                    smap = s.copy()
-                    smap[rain]=p2o(s[rain])
+                    cor_map = cor.copy()
+                    cor_map[rain]=p2o(cor[rain])
 
                     extrapolate = 'constant'
                     if extrapolate is None:
-                        smap_rain = smap[rain]
-                        smap_rain[np.where(s[rain]>np.nanmax(qp))] = qo[len(qo)-1]
-                        smap_rain[np.where(s[rain]<np.nanmin(qp))] = qo[0]
+                        cor_map_rain = cor_map[rain]
+                        cor_map_rain[np.where(cor[rain]>np.nanmax(qp))] = qo[len(qo)-1]
+                        cor_map_rain[np.where(cor[rain]<np.nanmin(qp))] = qo[0]
 
                     elif extrapolate == 'constant':
-                        smap_rain = smap[rain]
-                        smap_rain[np.where(s[rain]>np.nanmax(qp))] = s[rain][np.where(s[rain] > np.nanmax(qp))] + (qo[len(qo)-1] - qp[len(qo)-1])
-                        smap_rain[np.where(s[rain]<np.nanmin(qp))] = s[rain][np.where(s[rain] < np.nanmin(qp))] + (qo[0] - qp[0])
+                        cor_map_rain = cor_map[rain]
+                        cor_map_rain[np.where(cor[rain]>np.nanmax(qp))] = cor[rain][np.where(cor[rain]>np.nanmax(qp))]+(qo[len(qo)-1]-qp[len(qo)-1])
+                        cor_map_rain[np.where(cor[rain]<np.nanmin(qp))] = cor[rain][np.where(cor[rain]<np.nanmin(qp))]+(qo[0]-qp[0])
 
-                    smap[rain] = smap_rain
+                    cor_map[rain] = cor_map_rain
                 else:
-                    smap[rain] = list(itertools.repeat(0,len(s)))
-
+                    cor_map[rain] = list(itertools.repeat(0,len(cor)))
 
                 if len(drizzle) > 0:
-                    # print(eFrc[1]) ### equals smap[drizzle]; original R: probs = eFrc(s[drizzle])
-                    smap[drizzle] = mquantiles(s[s > np.nanmin(p[np.where(p > Pth)])],
+                    # print(eFrc[1]) ### equals cor_map[drizzle]; original R: probs = eFrc(s[drizzle]) -> needs to be fixed
+                    cor_map[drizzle] = mquantiles(cor[cor>np.nanmin(p[np.where(p>Pth)])],
                                                prob=0.1428571, alphap=0, betap=1)
-                    smap = np.array(smap)
-                    smap[noRain] = 0
-
+                    cor_map = np.array(cor_map)
+                    cor_map[noRain] = 0
                 else:
-                    smap = s
-    return(smap)
+                    cor_map = cor
+    return(cor_map)
 
     else:
-
         if np.isnan(obs).all() == True:
-            smap = list(itertools.repeat(np.nan,len(s)))
+            cor_map = list(itertools.repeat(np.nan,len(cor)))
         elif np.isnan(pred).all() == True:
-            smap = list(itertools.repeat(np.nan,len(s)))
+            cor_map = list(itertools.repeat(np.nan,len(cor)))
         elif (np.isnan(obs).any() == False) and (np.isnan(pred).any() == False):
             if nquantiles == None:
                 nquantiles = len(p)
@@ -92,12 +78,12 @@ def eqm(obs, pred, s, threshold, nquantiles):
             qo = mquantiles(obs[np.where(obs>2)], prob=binmid, alphap=1, betap=1)
             qp = mquantiles(p[np.where(p>Pth)], prob=binmid, alphap=1, betap=1)
             p2o = interp1d(qp, qo, kind='linear', bounds_error=False)
-            smap=p2o(s)
+            cor_map=p2o(cor)
             if extrapolation == "constant":
-                smap[np.where(s>np.nanmax(qp))] = s[np.where(s>np.nanmax(qp))]+(qo[len(qo)-1]-qp[len(qo)-1])
-                smap[np.where(s<np.nanmin(qp))] = s[np.where(s < np.nanmin(qp))] + (qo[0] - qp[0])
+                cor_map[np.where(cor>np.nanmax(qp))] = cor[np.where(cor>np.nanmax(qp))]+(qo[len(qo)-1]-qp[len(qo)-1])
+                cor_map[np.where(cor<np.nanmin(qp))] = cor[np.where(cor<np.nanmin(qp))]+(qo[0]-qp[0])
             else:
-                smap[np.where(s>np.nanmax(qp))] = qo[len(qo)-1]
-                smap[np.where(s<np.nanmin(qp))] = qo[0]
+                cor_map[np.where(cor>np.nanmax(qp))] = qo[len(qo)-1]
+                cor_map[np.where(cor<np.nanmin(qp))] = qo[0]
 
-    return(smap)
+    return(cor_map)
