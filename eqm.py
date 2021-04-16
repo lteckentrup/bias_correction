@@ -5,7 +5,7 @@ from ppt_adjustement import adjustPrecipFreq
 import itertools
 from statsmodels.distributions.empirical_distribution import ECDF
 
-def eqm(obs, pred, cor, threshold, nquantiles, extrapolate):
+def eqm(var, obs, pred, cor, threshold, nquantiles, extrapolate):
     if var == 'prec':
         if np.isnan(obs).any() == False:
             p, nPo, nPp, Pth = adjustPrecipFreq(obs, pred, threshold)
@@ -21,11 +21,10 @@ def eqm(obs, pred, cor, threshold, nquantiles, extrapolate):
                 drizzle = np.where((cor>Pth) & (cor<=np.min(p[np.where(p>Pth)])))
 
                 if (len(rain) > 0):
-                    
                     ecdf = ECDF(cor[rain])
                     eFrc =  ecdf.x
                     eFrc  = eFrc[~np.isinf(eFrc)]
-                    
+
                     if nquantiles == None:
                         nquantiles = len(p)
                     else:
@@ -33,8 +32,8 @@ def eqm(obs, pred, cor, threshold, nquantiles, extrapolate):
 
                     nbins = nquantiles
                     binmid = np.arange((1./nbins), 1., 1./nbins)
-                    
-                    ### alphap=1, betap=1: p(k) = (k-1)/(n-1): 
+
+                    ### alphap=1, betap=1: p(k) = (k-1)/(n-1):
                     ### p(k) = mode[F(x[k])]. (R type 7, R default)
                     qo = mquantiles(obs[np.where(obs>2)], prob=binmid, alphap=1, betap=1)
                     qp = mquantiles(p[np.where(p>Pth)], prob=binmid, alphap=1, betap=1)
@@ -49,6 +48,7 @@ def eqm(obs, pred, cor, threshold, nquantiles, extrapolate):
 
                     elif extrapolate == 'constant':
                         cor_map_rain = cor_map[rain]
+                        print(cor_map_rain)
                         cor_map_rain[np.where(cor[rain]>np.nanmax(qp))] = cor[rain][np.where(cor[rain]>np.nanmax(qp))]+(qo[len(qo)-1]-qp[len(qo)-1])
                         cor_map_rain[np.where(cor[rain]<np.nanmin(qp))] = cor[rain][np.where(cor[rain]<np.nanmin(qp))]+(qo[0]-qp[0])
 
@@ -64,7 +64,6 @@ def eqm(obs, pred, cor, threshold, nquantiles, extrapolate):
                     cor_map[noRain] = 0
                 else:
                     cor_map = cor
-    return(cor_map)
 
     else:
         if np.isnan(obs).all() == True:
@@ -73,13 +72,13 @@ def eqm(obs, pred, cor, threshold, nquantiles, extrapolate):
             cor_map = list(itertools.repeat(np.nan,len(cor)))
         elif (np.isnan(obs).any() == False) and (np.isnan(pred).any() == False):
             if nquantiles == None:
-                nquantiles = len(p)
+                nquantiles = len(pred)
             else:
                 pass
             nbins = nquantiles
             binmid = np.arange((1./nbins), 1., 1./nbins)
-            qo = mquantiles(obs[np.where(obs>2)], prob=binmid, alphap=1, betap=1)
-            qp = mquantiles(p[np.where(p>Pth)], prob=binmid, alphap=1, betap=1)
+            qo = mquantiles(obs, prob=binmid, alphap=1, betap=1)
+            qp = mquantiles(pred, prob=binmid, alphap=1, betap=1)
             p2o = interp1d(qp, qo, kind='linear', bounds_error=False)
             cor_map=p2o(cor)
             if extrapolate == 'constant':
