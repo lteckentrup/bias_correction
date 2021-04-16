@@ -66,7 +66,6 @@ def eqm(var, obs, pred, s, threshold, nquantiles):
     return(smap)
 
     else:
-
         if (all(is.na(o))):
             smap = list(itertools.repeat(np.nan,len(s)))
         elif (all(is.na(p))):
