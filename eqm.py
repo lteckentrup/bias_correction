@@ -48,7 +48,6 @@ def eqm(var, obs, pred, cor, threshold, nquantiles, extrapolate):
 
                     elif extrapolate == 'constant':
                         cor_map_rain = cor_map[rain]
-                        print(cor_map_rain)
                         cor_map_rain[np.where(cor[rain]>np.nanmax(qp))] = cor[rain][np.where(cor[rain]>np.nanmax(qp))]+(qo[len(qo)-1]-qp[len(qo)-1])
                         cor_map_rain[np.where(cor[rain]<np.nanmin(qp))] = cor[rain][np.where(cor[rain]<np.nanmin(qp))]+(qo[0]-qp[0])
 
