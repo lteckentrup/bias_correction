@@ -27,7 +27,6 @@ def adjustPrecipFreq(obs, pred, threshold):
         if len(np.unique(np.array(auxOs))) > 6:
             # simulate precip for 'p' with a gamma adjusted in 'o' for values between
             shape, loc, scale = gamma.fit(auxOs, floc=0)
-            rv = gamma(shape, loc = loc, scale = scale)
             Ps[nPp:(nPp+max(inddrzl))+1] = np.random.gamma(shape, scale, 8)
         else:
             Ps[nPp:(nPp+max(inddrzl))+1] = list(itertools.repeat(np.nanmean(auxOs),
