@@ -36,9 +36,10 @@ def qdm(var, obs, pred, cor, threshold, nquantiles, detrend):
         if detrend == True:
             lr = LinearRegression()
             lr.fit(np.arange(1,len(cor)+1).reshape(-1,1), cor)
-            obs_mean = lr.predict(np.arange(1,len(cor)+1).reshape(-1,1))
+            cor_mean = lr.predict(np.arange(1,len(cor)+1).reshape(-1,1))
         else:
-            cor_mean=obs_mean
+            cor_mean = list(itertools.repeat(obs_mean, len(cor)))
+            cor_mean = np.array(cor_mean)
 
         if nquantiles == 0:
             nquantiles = max(len(obs), len(pred))
@@ -56,13 +57,13 @@ def qdm(var, obs, pred, cor, threshold, nquantiles, detrend):
 
             yout=p2o(cor/cor_mean)
             extrap=np.isnan(yout)
-            yout[extrap]=np.nanmax(obs/obs_mean)*((cor[np.isnan(yout)]/cor_mean))/(np.nanmax(pred/pred_mean))
+            yout[extrap]=np.nanmax(obs/obs_mean)*((cor[np.isnan(yout)]/cor_mean[np.isnan(yout)]))/(np.nanmax(pred/pred_mean))
             yout = yout*cor_mean
         elif obs.any() < np.finfo(float).eps:
             x = mquantiles(pred/pred_mean, prob=tau, alphap=1, betap=1)
             y = mquantiles(obs/obs_mean, prob=tau, alphap=1, betap=1)
             p2o= interp1d(x, y, kind='linear', bounds_error=False)
-            yout=p2o(cor/cor_mean)]
+            yout=p2o(cor/cor_mean)
 
             cond1 = np.isnan(yout)
             cond2 = cor/cor_mean < np.nanmin(pred/pred_mean)
@@ -71,8 +72,8 @@ def qdm(var, obs, pred, cor, threshold, nquantiles, detrend):
             extrap_lower = cond1 & cond2
             extrap_upper = cond1 & cond3
 
-            yout[extrap_lower] = np.nanmin(obs/obs_mean)*((cor[extrap_lower]/cor_mean)/np.nanmin(pred/pred_mean))
-            yout[extrap_upper] = np.nanmax(obs/obs_mean)*((cor[extrap_upper]/cor_mean)/np.nanmax(pred/pred_mean))
+            yout[extrap_lower] = np.nanmin(obs/obs_mean)*((cor[extrap_lower]/cor_mean[extrap_lower])/np.nanmin(pred/pred_mean))
+            yout[extrap_upper] = np.nanmax(obs/obs_mean)*((cor[extrap_upper]/cor_mean[extrap_upper])/np.nanmax(pred/pred_mean))
             yout=yout*cor_mean
 
         else:
@@ -88,12 +89,12 @@ def qdm(var, obs, pred, cor, threshold, nquantiles, detrend):
             extrap_lower = cond1 & cond2
             extrap_upper = cond1 & cond3
 
-            yout[extrap_lower] = np.nanmin(obs-obs_mean)+((cor[extrap_lower]-cor_mean)-np.nanmin(pred-pred_mean))
-            yout[extrap_upper] = np.nanmax(obs-obs_mean)+((cor[extrap_upper]-cor_mean)-np.nanmax(pred-pred_mean))
+            yout[extrap_lower] = np.nanmin(obs-obs_mean)+((cor[extrap_lower]-cor_mean[extrap_lower])-np.nanmin(pred-pred_mean))
+            yout[extrap_upper] = np.nanmax(obs-obs_mean)+((cor[extrap_upper]-cor_mean[extrap_upper])-np.nanmax(pred-pred_mean))
 
             yout = yout+cor_mean
 
         if var == 'prec':
             yout[np.where(yout < math.sqrt(np.finfo(float).eps))] = 0
-            
+
     return(yout)
