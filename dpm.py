@@ -6,7 +6,7 @@ from scipy.interpolate import interp1d
 from sklearn.datasets import make_regression
 from sklearn.linear_model import LinearRegression
 
-def qdm(var, obs, pred, cor, threshold, nquantiles, detrend):
+def dpm(var, obs, pred, cor, threshold, nquantiles, detrend):
 
     eps = np.finfo(float).eps
     
