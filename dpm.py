@@ -9,7 +9,6 @@ from sklearn.linear_model import LinearRegression
 def dpm(var, obs, pred, cor, threshold, nquantiles, detrend):
 
     eps = np.finfo(float).eps
-    
     if (np.isnan(obs).all()==True and np.isnan(pred).any()==True and
         np.isnan(cor).any()==True):
         yout = itertools(np.nan, len(cor))
@@ -17,13 +16,13 @@ def dpm(var, obs, pred, cor, threshold, nquantiles, detrend):
     else:
         ### Original method adds jitter; ignore
         if var == 'prec':
-            obs[np.where((obs<2) & (obs!=np.nan))] = \
+            obs[np.where((obs<threshold) & (obs!=np.nan))] = \
             np.random.uniform(low=eps, high=threshold,
                               size=np.nansum(obs<threshold))
-            pred[np.where((pred<2) & (pred!=np.nan))] = \
+            pred[np.where((pred<threshold) & (pred!=np.nan))] = \
             np.random.uniform(low=eps, high=threshold,
                               size=np.nansum(pred<threshold))
-            cor[np.where((cor<2) & (cor!=np.nan))] = \
+            cor[np.where((cor<threshold) & (cor!=np.nan))] = \
             np.random.uniform(low=eps, high=threshold,
                               size=np.nansum(cor<threshold))
 
@@ -45,10 +44,12 @@ def dpm(var, obs, pred, cor, threshold, nquantiles, detrend):
             cor_mean = list(itertools.repeat(obs_mean, len(cor)))
             cor_mean = np.array(cor_mean)
 
-        if nquantiles == 0:
-            nquantiles = max(len(obs), len(pred))
+        if nquantiles == None or nquantiles == 0:
+            nquant = max(len(obs), len(pred))
+        else:
+            nquant = nquantiles
 
-        tau = np.arange(1,nquantiles+1)/(nquantiles+1)
+        tau = np.arange(1,nquant+1)/(nquant+1)
         tau = np.insert(tau, 0, 0)
         tau = np.append(tau, 1)
 
