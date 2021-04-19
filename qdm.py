@@ -57,6 +57,6 @@ def qdm(var, obs, pred, cor, threshold, nquantiles):
 
         # For precip data, set values less than threshold to zero
         if var == 'prec':
-            yout[yout < threshold] = 0
+            yout[yout<threshold] = 0
 
     return(yout)
