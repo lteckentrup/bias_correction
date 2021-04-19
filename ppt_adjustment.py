@@ -8,16 +8,22 @@ def adjustPrecipFreq(obs, pred, threshold):
     p = pred[np.isfinite(pred)]
 
     # Number of dry days in 'o'
-    nPo = len(o[o<threshold])
+    nPo = len(o[o<=threshold])
 
     # Number of dry days that must be in 'p' to equal precip frequency in 'o'
-    nPp = math.ceil(len(p) * nPo / len(o))
+    nPp = math.ceil(len(p)*nPo/len(o))
 
     # Index and values of ordered 'p'
     ix = np.argsort(p)
     Ps = sorted(p)
-    Pth = np.nanmax(Ps[nPo-1:nPo+1]) # in case nPp == length(Ps)
+    
+    # Code fails if threshold is zero 
+    if nPo == 0:
+        Pth = 0
+    else:
+        Pth = np.nanmax(Ps[nPo-1:nPo+1]) # in case nPp == length(Ps)
 
+    print(Pth)
     # Themeßl (Themessl) modification (simulating rain for model dry days)
     inddrzl = np.where(np.array(Ps[nPp:len(Ps)]) < threshold)[0]
     if len(inddrzl) > 0:
