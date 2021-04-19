@@ -9,6 +9,7 @@ from sklearn.linear_model import LinearRegression
 def qdm(var, obs, pred, cor, threshold, nquantiles, detrend):
 
     eps = np.finfo(float).eps
+    
     if (np.isnan(obs).all()==True and np.isnan(pred).any()==True and
         np.isnan(cor).any()==True):
         yout = itertools(np.nan, len(cor))
