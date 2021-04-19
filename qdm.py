@@ -45,6 +45,7 @@ def qdm(var, obs, pred, cor, threshold, nquantiles):
 
         if var == 'prec':
             p2o_pred = interp1d(tau, quantpred, kind='linear', bounds_error=False)
+            ### code might break if data that needs to be correct is zero so add eps
             delta = cor/(p2o_pred(taucor)+np.finfo(float).eps)
             p2o_yout = interp1d(tau, quantobs)
             yout = p2o_yout(taucor)*delta
