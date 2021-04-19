@@ -30,11 +30,9 @@ def dpm(var, obs, pred, cor, threshold, nquantiles, detrend):
         pred_mean = np.nanmean(pred)
 
         if var == 'prec':
-            cor_copy = cor.copy()
-            cor_copy = cor_copy/pred_mean*obs_mean
+            cor = cor/pred_mean*obs_mean
         else:
-            cor_copy = cor.copy()
-            cor_copy = cor_copy-pred_mean+obs_mean
+            cor = cor-pred_mean+obs_mean
 
         if detrend == True:
             lr = LinearRegression()
