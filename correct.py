@@ -2,13 +2,13 @@ import numpy as np
 import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
-from dpm import delta
-from dpm import scaling_add
-from dpm import scaling_multi
-from dpm import mva
-from dpm import dpm
-from eqm import eqm
-from qdm import qdm
+from bc_methods import delta
+from bc_methods import scaling_add
+from bc_methods import scaling_multi
+from bc_methods import mva
+from bc_methods import dpm
+from bc_methods import eqm
+from bc_methods import qdm
 import argparse
 
 def Bias_Correction(var, model, method, method_long):
