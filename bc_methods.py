@@ -23,7 +23,7 @@ def scaling_multi(obs, pred, cor):
 def mva(obs, pred, cor):
     c = (cor - np.nanmean(pred)) + np.nanstd(obs)/np.nanstd(pred) + np.nanmean(obs)
     return(c)
-  
+
 def dpm(var, obs, pred, cor, threshold, nquantiles, detrend):
 
     eps = np.finfo(float).eps
@@ -130,7 +130,7 @@ def dpm(var, obs, pred, cor, threshold, nquantiles, detrend):
 
     return(yout)
 
- def eqm(var, obs, pred, cor, threshold, nquantiles, extrapolate):
+def eqm(var, obs, pred, cor, threshold, nquantiles, extrapolate):
     if var == 'prec':
         if np.isnan(obs).any() == False:
             p, nPo, nPp, Pth = adjustPrecipFreq(obs, pred, threshold)
@@ -223,7 +223,7 @@ def dpm(var, obs, pred, cor, threshold, nquantiles, detrend):
                 cor_map[np.where(cor<np.nanmin(qp))] = qo[0]
 
     return(cor_map)
-  
+
 def qdm(var, obs, pred, cor, threshold, nquantiles):
 
     eps = np.finfo(float).eps
